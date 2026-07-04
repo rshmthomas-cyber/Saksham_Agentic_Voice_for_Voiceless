@@ -1,0 +1,60 @@
+{
+  "date": "2026-07-04T08:32:55.024484",
+  "total": 5,
+  "passed": 5,
+  "accuracy": 100.0,
+  "avg_confidence": 0.9339999999999999,
+  "hitl_triggered": 2,
+  "results": [
+    {
+      "scenario_id": 1,
+      "scenario": "Child appears hungry - restless, looking toward kitchen",
+      "expected_emotion": "hungry",
+      "detected_emotion": "hungry",
+      "confidence": 0.92,
+      "needs_caregiver": false,
+      "urgency": "normal",
+      "passed": true
+    },
+    {
+      "scenario_id": 2,
+      "scenario": "Child is crying, body tense, arms reaching out",
+      "expected_emotion": "distressed",
+      "detected_emotion": "distressed",
+      "confidence": 0.9,
+      "needs_caregiver": true,
+      "urgency": "high",
+      "passed": true
+    },
+    {
+      "scenario_id": 3,
+      "scenario": "Child is smiling, relaxed, making happy sounds",
+      "expected_emotion": "happy",
+      "detected_emotion": "happy",
+      "confidence": 0.95,
+      "needs_caregiver": false,
+      "urgency": "low",
+      "passed": true
+    },
+    {
+      "scenario_id": 4,
+      "scenario": "Child is lying down after meal, eyes closed, calm",
+      "expected_emotion": "resting",
+      "detected_emotion": "resting",
+      "confidence": 0.95,
+      "needs_caregiver": false,
+      "urgency": "low",
+      "passed": true
+    },
+    {
+      "scenario_id": 5,
+      "scenario": "Child is grimacing, holding stomach, whimpering",
+      "expected_emotion": "pain",
+      "detected_emotion": "pain",
+      "confidence": 0.95,
+      "needs_caregiver": true,
+      "urgency": "high",
+      "passed": true
+    }
+  ]
+}

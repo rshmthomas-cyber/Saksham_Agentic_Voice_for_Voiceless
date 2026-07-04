@@ -1,5 +1,10 @@
 import asyncio
 import json
+import time
+import logging
+
+# Security: suppress sensitive data from logs
+logging.basicConfig(level=logging.ERROR)
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai.types import Content, Part
@@ -15,30 +20,38 @@ load_dotenv()
 # One session service for all agents
 session_service = InMemorySessionService()
 
-async def run_agent(agent, session_id, message_text):
-    """Helper to run any agent and get response."""
-    await session_service.create_session(
-        app_name="saksham",
-        user_id="caregiver",
-        session_id=session_id
-    )
-    runner = Runner(
-        agent=agent,
-        app_name="saksham",
-        session_service=session_service
-    )
-    message = Content(
-        role="user",
-        parts=[Part(text=message_text)]
-    )
-    async for event in runner.run_async(
-        user_id="caregiver",
-        session_id=session_id,
-        new_message=message
-    ):
-        if event.is_final_response():
-            if event.content and event.content.parts:
-                return event.content.parts[0].text
+async def run_agent(agent, session_id, message_text, retries=3):
+    """Helper to run any agent with retry on 503 errors."""
+    for attempt in range(retries):
+        try:
+            await session_service.create_session(
+                app_name="saksham",
+                user_id="caregiver",
+                session_id=f"{session_id}_{attempt}"
+            )
+            runner = Runner(
+                agent=agent,
+                app_name="saksham",
+                session_service=session_service
+            )
+            message = Content(
+                role="user",
+                parts=[Part(text=message_text)]
+            )
+            async for event in runner.run_async(
+                user_id="caregiver",
+                session_id=f"{session_id}_{attempt}",
+                new_message=message
+            ):
+                if event.is_final_response():
+                    if event.content and event.content.parts:
+                        return event.content.parts[0].text
+        except Exception as e:
+            if "503" in str(e) or "UNAVAILABLE" in str(e):
+                print(f"  Gemini busy, retrying in 10 seconds... (attempt {attempt+1}/{retries})")
+                time.sleep(10)
+            else:
+                raise
     return None
 
 async def saksham_pipeline():
