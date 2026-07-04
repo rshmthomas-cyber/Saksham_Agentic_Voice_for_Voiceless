@@ -29,7 +29,7 @@ submitted under the **Agents for Good** track.
 ---
 
 ## Architecture
-"""
+```
 Camera Input
 ↓
 Agent 1 — Perception (OpenCV + Gemini Vision)
@@ -39,7 +39,7 @@ Agent 2 — Emotion Detection (Gemini Flash + Confidence Score)
 Agent 3 — Communication (LLM forms her sentence)
 ↓
 Agent 4 — Voice Output (pyttsx3 TTS speaks for her)
-"""
+```
 ---
 
 ## Course Concepts Demonstrated
@@ -56,12 +56,12 @@ Agent 4 — Voice Output (pyttsx3 TTS speaks for her)
 ---
 
 ## Evaluation Results
-"""
+```
 RESULTS:          5/5 passed
 ACCURACY:         100.0%
 AVG CONFIDENCE:   0.93
 HITL TRIGGERED:   2 times
-"""
+```
 ---
 
 ## Tech Stack
@@ -124,7 +124,7 @@ python evals.py
 - 🔜 Fine-tuned LLaVA model on child's personal data
 - 🔜 Custom ElevenLabs voice clone built from her sounds
 - 🔜 Deploy on NVIDIA Jetson Orin Nano (offline, private)
-- 🔜 Arabic and Malayalam language support
+- 🔜 English and Malayalam language support
 - 🔜 Mobile app for caregivers
 
 ---
