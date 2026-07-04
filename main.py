@@ -61,18 +61,26 @@ async def saksham_pipeline():
     print("=" * 50)
     print()
     
-    # AGENT 1 - Perception
+    # AGENT 1 - Perception with loopback retry
     print("Agent 1 - Perceiving...")
-    observation = await run_agent(
-        perception_agent,
-        "session_perception",
-        "Capture and analyze what you see"
-    )
-    print(f"Observation: {observation}")
-    print()
+    max_perception_attempts = 3
+    observation = None
+    
+    for attempt in range(max_perception_attempts):
+        observation = await run_agent(
+            perception_agent,
+            f"session_perception_{attempt}",
+            "Capture and analyze what you see"
+        )
+        
+        if observation:
+            print(f"Observation: {observation}")
+            break
+        else:
+            print(f"  Perception attempt {attempt+1} failed, retrying...")
     
     if not observation:
-        print("Perception failed. Check webcam.")
+        print("Perception failed after 3 attempts. Check webcam.")
         return
     
     # AGENT 2 - Emotion Detection
@@ -85,22 +93,52 @@ async def saksham_pipeline():
     print(f"Emotion Result: {emotion_result}")
     print()
     
-    # HUMAN IN THE LOOP - check if caregiver needed
+    # AGENT ORCHESTRATION — confidence-based dynamic routing
     try:
-        emotion_data = json.loads(emotion_result)
-        if emotion_data.get("needs_caregiver"):
-            print("⚠️  LOW CONFIDENCE — Caregiver input needed!")
-            print(f"Best guess: {emotion_data.get('emotion')}")
+        emotion_data = json.loads(
+            emotion_result.replace("```json", "").replace("```", "").strip()
+        )
+        confidence = emotion_data.get("confidence", 0)
+        
+        # Below 0.50 — loop back to Agent 1 for another look
+        if confidence < 0.50:
+            print(f"⚠️  Very low confidence ({confidence}) — looping back to Agent 1...")
+            observation = await run_agent(
+                perception_agent,
+                "session_perception_retry",
+                "Look more carefully. Capture and analyze again."
+            )
+            print(f"  New observation: {observation}")
+            emotion_result = await run_agent(
+                emotion_agent,
+                "session_emotion_retry",
+                f"Analyze this carefully: {observation}"
+            )
+            emotion_data = json.loads(
+                emotion_result.replace("```json", "").replace("```", "").strip()
+            )
+            print(f"  Retry emotion result: {emotion_result}")
+
+        # Below 0.70 — trigger Human-in-the-Loop
+        elif emotion_data.get("needs_caregiver"):
+            print(f"⚠️  LOW CONFIDENCE ({confidence}) — Caregiver input needed!")
+            print(f"   Best guess: {emotion_data.get('emotion')}")
+            print(f"   Urgency: {emotion_data.get('urgency')}")
             caregiver_input = input("What does she need? (press Enter to use best guess): ")
             if caregiver_input.strip():
-                emotion_result = json.dumps({
+                emotion_data = {
                     "emotion": caregiver_input,
                     "confidence": 1.0,
                     "needs_caregiver": False,
                     "urgency": "normal"
-                })
-    except:
-        pass
+                }
+                emotion_result = json.dumps(emotion_data)
+                print(f"  Caregiver confirmed: {caregiver_input}")
+        else:
+            print(f"✅ High confidence ({confidence}) — proceeding automatically")
+
+    except Exception as e:
+        print(f"Orchestration error: {e}")
     
     # AGENT 3 - Communication
     print("Agent 3 - Finding her words...")
